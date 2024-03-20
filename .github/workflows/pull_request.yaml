@@ -1,0 +1,35 @@
+name: "Security Pipeline"
+
+on:
+    push:
+      branches:
+        - main
+        - feat/checkov-scan
+    pull_request:
+      types:
+        - opened
+        - edited
+        - reopened
+        - synchronize
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write # Required to comment with the plan output on PRs
+
+jobs:
+  trivy-scan:
+    name: "Trigger Trivy Scan"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Scan OSS
+        uses: aquasecurity/trivy-action@0.17.0
+        with:
+          scanners: 'vuln,misconfig'
+          scan-type: 'repo'
+          scan-ref: .
+          severity: 'MEDIUM,HIGH,CRITICAL'
+          exit-code: 1
